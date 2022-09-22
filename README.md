@@ -1,11 +1,11 @@
-# UltimateLabeling
+# decisionlabeling
 
-[![Build Status](https://travis-ci.com/alexandre01/UltimateLabeling.svg?branch=master)](https://travis-ci.com/alexandre01/UltimateLabeling)
+[![Build Status](https://travis-ci.com/alexandre01/decisionlabeling.svg?branch=master)](https://travis-ci.com/alexandre01/decisionlabeling)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPI](https://img.shields.io/pypi/pyversions/ultimatelabeling.svg)](https://pypi.python.org/pypi/ultimatelabeling)
-[![PyPI](https://img.shields.io/pypi/v/ultimatelabeling.svg)](https://pypi.python.org/pypi/ultimatelabeling) 
+[![PyPI](https://img.shields.io/pypi/pyversions/decisionlabeling.svg)](https://pypi.python.org/pypi/decisionlabeling)
+[![PyPI](https://img.shields.io/pypi/v/decisionlabeling.svg)](https://pypi.python.org/pypi/decisionlabeling) 
 
-![GitHub stars](https://img.shields.io/github/stars/alexandre01/UltimateLabeling.svg?style=social)
+![GitHub stars](https://img.shields.io/github/stars/alexandre01/decisionlabeling.svg?style=social)
 
 A multi-purpose Video Labeling GUI in Python with integrated SOTA detector and tracker. Developed using PyQt5.
 
@@ -16,19 +16,6 @@ A multi-purpose Video Labeling GUI in Python with integrated SOTA detector and t
 - SiamMask visual object tracking for missing or mislabeled boxes
 - Zoom on video, resizable bounding boxes and skeletons
 - Dark mode!
-
-## Demo 
-<img src="docs/ultimatelabeling.jpg" width="90%" />
-
-<img src="docs/uptown_funk.jpg" width="45%" /> <img src="docs/roundabout.jpg" width="45%" />
-
-
-The integrated object detectors and trackers are based on the following codes:
-- [OpenPifPaf](https://github.com/vita-epfl/openpifpaf): for human pose estimation
-- [YOLO darknet](https://github.com/AlexeyAB/darknet): for object detection
-- [SiamMask](https://github.com/foolwood/SiamMask): for visual object tracking
-- [Hungarian algorithm (scipy.optimize)](https://github.com/scipy/scipy): for optimal instance ID assignment
-
 
 ## Installation
 
@@ -52,19 +39,9 @@ pip install -r requirements
 
 Finally, open the GUI using: 
 ```bash
-python -m ultimatelabeling.main
+python -m decisionlabeling.main
 ```
 
-## Remote server configuration
-To configure the remote GPU server (using the code in [server files](https://github.com/alexandre01/UltimateLabeling_server).), follow the steps below:
-
-```bash
-git clone https://github.com/alexandre01/UltimateLabeling_server.git
-cd UltimateLabeling_server
-pip install -r requirements.txt
-bash siamMask/setup.sh
-bash detection/setup.sh
-```
 
 The data images and videos should be placed in the folder `data`, similarly to the client code.
 
@@ -110,6 +87,3 @@ Mouse:
 
 ## Improvements / issues
 Please write a GitHub issue if you experience any issue or wish an improvement. Or even better, submit a pull request! 
-
-## Licence
-Copyright (c) 2019 Alexandre Carlier, released under the MIT licence.

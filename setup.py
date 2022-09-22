@@ -1,21 +1,21 @@
 from setuptools import setup
 
 # extract version from __init__.py
-with open('ultimatelabeling/__init__.py', 'r') as f:
+with open('decisionlabeling/__init__.py', 'r') as f:
     VERSION_LINE = [l for l in f if l.startswith('__version__')][0]
     VERSION = VERSION_LINE.split('=')[1].strip()[1:-1]
 
 setup(
-    name='ultimatelabeling',
+    name='decisionlabeling',
     version=VERSION,
     packages=[
-        'ultimatelabeling',
-        'ultimatelabeling.views',
-        'ultimatelabeling.models',
-        'ultimatelabeling.styles',
-        'ultimatelabeling.siamMask',
-        'ultimatelabeling.siamMask.models',
-        'ultimatelabeling.siamMask.utils'
+        'decisionlabeling',
+        'decisionlabeling.views',
+        'decisionlabeling.models',
+        'decisionlabeling.styles',
+        'decisionlabeling.siamMask',
+        'decisionlabeling.siamMask.models',
+        'decisionlabeling.siamMask.utils'
     ],
     license='MIT',
     description='A multi-purpose Video Labeling GUI in Python with integrated SOTA detector and tracker.',

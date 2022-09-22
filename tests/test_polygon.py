@@ -1,5 +1,5 @@
 import pytest
-from ultimatelabeling.models.polygon import Bbox, Polygon, Keypoints
+from decisionlabeling.models.polygon import Bbox, Polygon, Keypoints
 
 
 class TestBbox:

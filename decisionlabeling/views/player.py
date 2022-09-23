@@ -146,6 +146,19 @@ class PlayerWidget(QGroupBox, KeyboardListener):
     def on_skip_forward_clicked(self):
         self.state.set_current_frame(self.state.nb_frames - 1)
 
+    def on_key_a(self):
+        self.state.set_side("left")
+        self.update_state()
+
+    def on_key_d(self):
+        self.state.set_side("right")
+        self.update_state()
+
+    def update_state(self):
+        self.state.img_viewer.on_current_frame_change()
+        self.state.track_info.tagged_frames[self.state.current_frame] = self.state.side
+        self.state.track_info.total_frames = self.state.nb_frames
+
     # def create_mask(self):
     #     self.state.tracking_server_running = True
     #     self.state.detection_server_running = True

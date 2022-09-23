@@ -440,8 +440,7 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
                 if self.holding_ctrl:
                     self.current_event = Event.DRAWING
                     track_id = self.state.track_info.get_min_available_track_id()
-                    self.current_detection = Detection(track_id=track_id, bbox=Bbox(pos.x(), pos.y(), 0, 0),
-                                                       user_name=self.state.user_name)
+                    self.current_detection = Detection(track_id=track_id, bbox=Bbox(pos.x(), pos.y(), 0, 0))
 
                     self.on_current_frame_change()
                 else:

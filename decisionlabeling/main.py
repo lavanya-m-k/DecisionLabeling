@@ -1,18 +1,38 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore
+# ,QtGui
 from decisionlabeling.views import *
 from decisionlabeling.models import State, StateListener, KeyboardNotifier
 from decisionlabeling.styles import Theme
 
+class RegisterUser(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.user_name = QLineEdit(self)
+        self.button_login = QPushButton('start', self)
+        self.button_login.clicked.connect(self.register_user)
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.user_name)
+        layout.addWidget(self.button_login)
+
+    def register_user(self):
+        if self.user_name.text() != '':
+            user = self.user_name.text()
+            print(user)
+            self.accept()
+        else:
+            QMessageBox.warning(
+                self, 'Error', 'Bad username')
+
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, user_name):
         super().__init__()
 
         self.setWindowTitle("UltimateLabeler")
 
-        self.central_widget = CentralWidget()
+        self.central_widget = CentralWidget(user_name)
         self.central_widget.setFocusPolicy(Qt.StrongFocus)
         self.setFocusProxy(self.central_widget)
         self.central_widget.setFocus(True)
@@ -72,20 +92,21 @@ class MainWindow(QMainWindow):
 
 
 class CentralWidget(QWidget, StateListener):
-    def __init__(self):
+    def __init__(self, user_name):
         super().__init__()
 
-        self.state = State()
-        if self.state.user_name==None:
-            QMessageBox.warning(self, "", "Please enter username")
-        #     control_box = QGroupBox("Control")
-        #     self.user_info = UserInfo(self.state)
-        #     control_layout = QVBoxLayout()
-        #     control_layout.addWidget(self.user_info)
-        #     self.setLayout(control_layout)
+        self.state = State(user_name)
+        # if self.state.user_name==None:
+        #     QMessageBox.warning(self, "", "Please enter username")
+        # #     control_box = QGroupBox("Control")
+        # #     self.user_info = UserInfo(self.state)
+        # #     control_layout = QVBoxLayout()
+        # #     control_layout.addWidget(self.user_info)
+        # #     self.setLayout(control_layout)
 
         self.state.load_state()
         self.state.add_listener(self)
+        # self.state.user_name = user_name
 
         self.keyboard_notifier = KeyboardNotifier()
 
@@ -96,7 +117,7 @@ class CentralWidget(QWidget, StateListener):
         self.side_tagger = SideTagger(self.state)
         self.theme_picker = ThemePicker(self.state)
         self.options = Options(self.state)
-        self.user_info = UserInfo(self.state)
+        # self.user_info = UserInfo(self.state)
 
         # self.detection_manager = DetectionManager(self.state, self.ssh_login)
         # self.tracking_manager = TrackingManager(self.state)
@@ -140,7 +161,7 @@ class CentralWidget(QWidget, StateListener):
         control_box = QGroupBox("Control")
         control_layout = QVBoxLayout()
         control_layout.addWidget(self.player)
-        control_layout.addWidget(self.user_info)
+        # control_layout.addWidget(self.user_info)
         control_layout.addWidget(self.side_tagger)
         # control_layout.addWidget(self.theme_picker)
         # control_layout.addWidget(self.options)
@@ -162,7 +183,12 @@ class CentralWidget(QWidget, StateListener):
 if __name__ == '__main__':
     app = QApplication([])
     # first_window = FirstWindow()
-    main_window = MainWindow()
+    reg_user = RegisterUser()
+
+    if reg_user.exec_() == 1:
+        main_window = MainWindow(reg_user.user_name.text())
+        #main_window.show()
+        #sys.exit(app.exec_())
     app.exec()
 
 

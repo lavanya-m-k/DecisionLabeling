@@ -23,7 +23,7 @@ class RightClickOption:
 
 
 class State:
-    def __init__(self):
+    def __init__(self, user_name):
         self.video_list = []
         self.current_video = None
         self.current_frame = 0
@@ -32,9 +32,7 @@ class State:
         self.theme = Theme.DARK
         self.ssh_credentials = SSHCredentials()
         self.frame_rate = 60
-        self.user_name = ""
-        if self.user_name != None:
-            self.track_info = TrackInfo()
+        self.user_name = user_name
         self.current_detection = None
         self.frame_mode = FrameMode.MANUAL
 

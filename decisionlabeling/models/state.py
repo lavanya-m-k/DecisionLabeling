@@ -32,6 +32,7 @@ class State:
         self.theme = Theme.DARK
         self.ssh_credentials = SSHCredentials()
         self.frame_rate = 60
+        self.FRAME_RATE = 20
         self.user_name = user_name
         self.current_detection = None
         self.frame_mode = FrameMode.MANUAL
@@ -153,12 +154,13 @@ class State:
         if speed is None:
             speed = self.speed_player
 
-        new_frame = max(min(self.current_frame + speed, self.nb_frames - 1), 0)
+        new_frame = max(min(self.current_frame + speed, self.nb_frames - 1), 1)
         self.set_current_frame(new_frame, frame_mode=frame_mode)
 
     def set_current_video(self, video_name):
         if video_name != self.current_video:
             self.track_info.save_to_disk()
+            print("state changed")
 
             self.current_video = video_name
             self.update_file_names()
@@ -166,8 +168,11 @@ class State:
             self.track_info = TrackInfo(self.current_video, self.user_name)
             self.track_info.load_detections(self.get_file_name())
             self.current_detection = None
-            self.frame_mode = FrameMode.MANUAL
-
+            # self.frame_mode = FrameMode.MANUAL
+            self.FRAME_RATE = 5
+            self.frame_mode = FrameMode.CONTROLLED
+            # thread.start()
+            self.side=None
             self.notify_listeners("on_video_change")
 
     def set_theme(self, theme):

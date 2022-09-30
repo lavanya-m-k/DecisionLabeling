@@ -7,7 +7,7 @@ import time
 
 
 class PlayerThread(QThread):
-    FRAME_RATE = 20
+    #FRAME_RATE = 20
 
     def __init__(self, state):
         super().__init__()
@@ -22,8 +22,8 @@ class PlayerThread(QThread):
             if not self.state.drawing:
                 self.state.increase_current_frame()
 
-            self.state.frame_rate = self.FRAME_RATE
-            time.sleep(1 / self.FRAME_RATE)
+            self.state.frame_rate = self.state.FRAME_RATE
+            time.sleep(1 / self.state.FRAME_RATE)
 
 
 class PlayerWidget(QGroupBox, KeyboardListener):
@@ -33,7 +33,7 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.state = state
 
         self.thread = PlayerThread(self.state)
-        self.thread.finished.connect(self.on_player_finished)
+        # self.thread.finished.connect(self.on_player_finished)
 
         layout = QHBoxLayout()
 
@@ -48,6 +48,10 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.play_button = QPushButton()
         self.play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self.play_button.clicked.connect(self.on_play_clicked)
+
+        self.slow_play_button = QPushButton()
+        self.slow_play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.slow_play_button.clicked.connect(self.on_default_play)
 
         self.pause_button = QPushButton()
         self.pause_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
@@ -78,10 +82,11 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.speed_right_button.setText("")
 
     def on_play_clicked(self):
+        self.state.FRAME_RATE=20
         self.speed_left_button.setText("")
         self.speed_right_button.setText("")
-        print("Frame number: ", self.state.current_frame)
-        print("Side : ", self.state.side)
+        # print("Frame number: ", self.state.current_frame)
+        # print("Side : ", self.state.side)
         # print("frame rate: ", self.state.frame_rate)
 
         if not self.thread.isRunning():
@@ -92,10 +97,25 @@ class PlayerWidget(QGroupBox, KeyboardListener):
             self.play_button.hide()
             self.pause_button.show()
 
+    def on_default_play(self):
+        # self.speed_left_button.setText("")
+        # self.speed_right_button.setText("")
+        # print("Frame number: ", self.state.current_frame)
+        # print("Side : ", self.state.side)
+        # print("frame rate: ", self.state.frame_rate)
+
+        if not self.thread.isRunning():
+
+            self.state.frame_mode = FrameMode.CONTROLLED
+            self.thread.start()
+
+            # self.slow_play_button.hide()
+            # self.pause_button.show()
+
     def on_pause_clicked(self):
         self.speed_left_button.setText("")
         self.speed_right_button.setText("")
-        print("Frame number: ", self.state.current_frame)
+        # print("Frame number: ", self.state.current_frame)
         print("Side : ", self.state.side)
 
         if self.thread.isRunning():
@@ -127,7 +147,7 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.speed_left_button.setText("x{}".format(abs(self.state.speed_player)))
 
     def on_speed_right_clicked(self):
-        speed_options = [+2, +5, +10]
+        speed_options = [+2, +5, + 10]
 
         if self.state.speed_player in speed_options:
             current_speed_idx = speed_options.index(self.state.speed_player)
@@ -140,34 +160,41 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.speed_left_button.setText("")
         self.speed_right_button.setText("x{}".format(self.state.speed_player))
 
+    def on_slow_clicked(self):
+        speed_options = [+2, +5, +10]
+
+        # if self.state.speed_player in speed_options:
+        current_speed_idx = 0#speed_options.index(self.state.speed_player)
+        self.state.speed_player = speed_options[(current_speed_idx + 1) % len(speed_options)]
+        # else:
+        #     self.state.speed_player = speed_options[0]
+        #
+        # self.on_play_clicked()
+        #
+        # self.speed_left_button.setText("")
+        # self.speed_right_button.setText("x{}".format(self.state.speed_player))
+
     def on_skip_backward_clicked(self):
         self.state.set_current_frame(0)
 
     def on_skip_forward_clicked(self):
         self.state.set_current_frame(self.state.nb_frames - 1)
 
-    def on_key_a(self):
-        self.state.set_side("left")
-        self.update_state()
+    def on_key_x(self):
+        if self.state.side != "left":
+            self.state.set_side("left")
+            self.update_state()
+        else:
+            self.state.side = None
 
-    def on_key_d(self):
-        self.state.set_side("right")
-        self.update_state()
+    def on_key_v(self):
+        if self.state.side != "right":
+            self.state.set_side("right")
+            self.update_state()
+        else:
+            self.state.side = None
 
     def update_state(self):
         self.state.img_viewer.on_current_frame_change()
         self.state.track_info.tagged_frames[self.state.current_frame] = self.state.side
         self.state.track_info.total_frames = self.state.nb_frames
-
-    # def create_mask(self):
-    #     self.state.tracking_server_running = True
-    #     self.state.detection_server_running = True
-    #     self.state.drawing = True
-    #
-    #     left_bbox = Bbox(125.0, 50.0, 80.0, 100.0)
-    #     right_bbox = Bbox(436.0, 16.0, 70.0, 90.0)
-    #     left_detection = Detection(class_id=0, track_id=0, polygon=Polygon(), bbox=left_bbox)
-    #     right_detection = Detection(class_id=0, track_id=0, polygon=Polygon(), bbox=right_bbox)
-    #
-    #     self.state.add_detection(left_detection, self.state.current_frame)
-    #     self.state.add_detection(right_detection, self.state.current_frame)

@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QListWidget
 from decisionlabeling.models import StateListener, FrameMode
+from decisionlabeling.views.player import PlayerThread
 
 
 class VideoListWidget(QListWidget, StateListener):

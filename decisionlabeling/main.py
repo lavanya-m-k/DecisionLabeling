@@ -1,10 +1,13 @@
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
+import os
 from PyQt5 import QtCore
 # ,QtGui
 from decisionlabeling.views import *
-from decisionlabeling.models import State, StateListener, KeyboardNotifier
+from decisionlabeling.models import State, StateListener, KeyboardNotifier, FrameMode
 from decisionlabeling.styles import Theme
+from decisionlabeling.config import DOCS_PATH
 
 class RegisterUser(QDialog):
     def __init__(self):
@@ -30,7 +33,7 @@ class MainWindow(QMainWindow):
     def __init__(self, user_name):
         super().__init__()
 
-        self.setWindowTitle("UltimateLabeler")
+        self.setWindowTitle("Labeler")
 
         self.central_widget = CentralWidget(user_name)
         self.central_widget.setFocusPolicy(Qt.StrongFocus)
@@ -117,6 +120,12 @@ class CentralWidget(QWidget, StateListener):
         self.side_tagger = SideTagger(self.state)
         self.theme_picker = ThemePicker(self.state)
         self.options = Options(self.state)
+
+
+        self.state.FRAME_RATE= 5
+        self.state.frame_mode = FrameMode.CONTROLLED
+        self.thread = PlayerThread(self.state)
+        self.thread.start()
         # self.user_info = UserInfo(self.state)
 
         # self.detection_manager = DetectionManager(self.state, self.ssh_login)
@@ -163,6 +172,11 @@ class CentralWidget(QWidget, StateListener):
         control_layout.addWidget(self.player)
         # control_layout.addWidget(self.user_info)
         control_layout.addWidget(self.side_tagger)
+        pic = QLabel(control_box)
+        pic.setGeometry(10, 10, 400, 100)
+        # use full ABSOLUTE path to the image, not relative
+        pic.setPixmap(QPixmap(DOCS_PATH + "/keyboard-shortcuts.png"))
+        control_layout.addWidget(pic)
         # control_layout.addWidget(self.theme_picker)
         # control_layout.addWidget(self.options)
         # control_layout.addWidget(self.hungarian_button)

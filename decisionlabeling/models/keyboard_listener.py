@@ -21,11 +21,11 @@ class KeyboardNotifier:
         if event.key() in [Qt.Key_Right, Qt.Key_D]:
             self.notify_listeners("on_key_right")
 
-        if event.key() in [Qt.Key_A]:
-            self.notify_listeners("on_key_a")
+        if event.key() in [Qt.Key_X]:
+            self.notify_listeners("on_key_x")
 
-        if event.key() in [Qt.Key_D]:
-            self.notify_listeners("on_key_d")
+        if event.key() in [Qt.Key_V]:
+            self.notify_listeners("on_key_v")
 
         if event.key() == Qt.Key_Control:
             self.notify_listeners("on_key_ctrl", True)
@@ -74,10 +74,10 @@ class KeyboardListener:
     def on_key_delete(self):
         pass
 
-    def on_key_a(self):
+    def on_key_x(self):
         pass
 
-    def on_key_d(self):
+    def on_key_v(self):
         pass
 
     def on_key_number(self, number):

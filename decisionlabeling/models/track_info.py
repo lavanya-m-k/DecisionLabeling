@@ -7,6 +7,7 @@ from .polygon import Polygon, Bbox, Keypoints
 from decisionlabeling.class_names import DEFAULT_CLASS_NAMES
 from decisionlabeling.config import OUTPUT_DIR, COLUMN_NAMES
 from tqdm import tqdm
+from collections import OrderedDict
 
 class Detection:
     def __init__(self, class_id='unset', track_id=0, polygon=Polygon(), bbox=Bbox(),
@@ -75,10 +76,11 @@ class TrackInfo:
 
         self.file_name = None
         self.detections = []
-        self.tagged_frames = {}
+        self.tagged_frames = OrderedDict()
+        self.last_tagged_side = -1
         self.total_frames = None
 
-        dir_name = os.path.join(OUTPUT_DIR, self.user_name, self.video_name)
+        dir_name = os.path.join(OUTPUT_DIR, self.user_name)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
@@ -90,7 +92,8 @@ class TrackInfo:
         # self.write_detections(self.file_name)
 
     def load_info(self):
-        json_file = os.path.join(OUTPUT_DIR, "{}/info.json".format(self.video_name))
+        json_file = os.path.join(OUTPUT_DIR, "info.json")
+        # json_file = os.path.join(OUTPUT_DIR, "{}/info.json".format(self.video_name))
 
         if not os.path.exists(json_file):
             return
@@ -176,7 +179,8 @@ class TrackInfo:
         self.detections = self.get_detections(file_name)
 
     def write_info(self):
-        json_file = os.path.join(OUTPUT_DIR + "/" + self.user_name, "{}/info.json".format(self.video_name))
+        json_file = os.path.join(OUTPUT_DIR + "/" + self.user_name, "info.json")
+        # json_file = os.path.join(OUTPUT_DIR + "/" + self.user_name, "{}/info.json".format(self.video_name))
 
         data = {
             "video_name": self.video_name,
@@ -186,8 +190,16 @@ class TrackInfo:
             "total_frames": self.total_frames
         }
 
+        data_l = []
+        if os.path.exists(json_file):
+            with open(json_file, "r") as f:
+                existing_data = json.load(f)
+                existing_data.update(data)
+                data = existing_data
+
         with open(json_file, "w") as f:
             json.dump(data, f)
+            f.write('\n')
 
     def write_detections(self, file_name, detections=None):
         txt_file = os.path.join(OUTPUT_DIR + "/" + self.user_name, "{}/{}.txt".format(self.video_name, file_name))

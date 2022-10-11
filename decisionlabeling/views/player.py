@@ -17,10 +17,10 @@ class PlayerThread(QThread):
     def run(self):
         while self.state.frame_mode == FrameMode.CONTROLLED and (
                 (self.state.speed_player >= 0 and self.state.current_frame < self.state.nb_frames - 1) or
-                (self.state.speed_player < 0 and self.state.current_frame > 0)
+                (self.state.speed_player < 0 < self.state.current_frame)
         ):
-            if not self.state.drawing:
-                self.state.increase_current_frame()
+            # if not self.state.drawing:
+            self.state.increase_current_frame()
 
             self.state.frame_rate = self.state.FRAME_RATE
             time.sleep(1 / self.state.FRAME_RATE)
@@ -82,15 +82,18 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.speed_right_button.setText("")
 
     def on_play_clicked(self):
-        self.state.FRAME_RATE=20
+        self.state.FRAME_RATE=40
         self.speed_left_button.setText("")
+        self.state.speed_player = 5
         self.speed_right_button.setText("")
         # print("Frame number: ", self.state.current_frame)
         # print("Side : ", self.state.side)
         # print("frame rate: ", self.state.frame_rate)
 
         if not self.thread.isRunning():
-
+            if self.state.is_view_play:
+                self.state.current_frame = 0
+            self.state.is_view_play = False
             self.state.frame_mode = FrameMode.CONTROLLED
             self.thread.start()
 
@@ -120,7 +123,7 @@ class PlayerWidget(QGroupBox, KeyboardListener):
 
         if self.thread.isRunning():
             self.state.frame_mode = FrameMode.MANUAL
-            self.state.speed_player = 1
+            self.state.speed_player = 5
             self.thread.wait()
 
             self.pause_button.hide()
@@ -133,35 +136,35 @@ class PlayerWidget(QGroupBox, KeyboardListener):
             self.on_play_clicked()
 
     def on_speed_left_clicked(self):
-        speed_options = [-2, -5, -10]
+        speed_options = [-10, -15, -20]
 
         if self.state.speed_player in speed_options:
             current_speed_idx = speed_options.index(self.state.speed_player)
-            self.state.speed_player = speed_options[(current_speed_idx + 1) % len(speed_options)]
+            self.state.speed_player = speed_options[(current_speed_idx + 5) % len(speed_options)]
         else:
             self.state.speed_player = speed_options[0]
 
         self.on_play_clicked()
 
         self.speed_right_button.setText("")
-        self.speed_left_button.setText("x{}".format(abs(self.state.speed_player)))
+        self.speed_left_button.setText("x{}".format(abs(self.state.speed_player/5)))
 
     def on_speed_right_clicked(self):
-        speed_options = [+2, +5, + 10]
+        speed_options = [+10, +15, +20]
 
         if self.state.speed_player in speed_options:
             current_speed_idx = speed_options.index(self.state.speed_player)
-            self.state.speed_player = speed_options[(current_speed_idx + 1) % len(speed_options)]
+            self.state.speed_player = speed_options[(current_speed_idx + 5) % len(speed_options)]
         else:
             self.state.speed_player = speed_options[0]
 
         self.on_play_clicked()
 
         self.speed_left_button.setText("")
-        self.speed_right_button.setText("x{}".format(self.state.speed_player))
+        self.speed_right_button.setText("x{}".format(self.state.speed_player/5))
 
     def on_slow_clicked(self):
-        speed_options = [+2, +5, +10]
+        speed_options = [+10, +15, +20]
 
         # if self.state.speed_player in speed_options:
         current_speed_idx = 0#speed_options.index(self.state.speed_player)
@@ -196,5 +199,9 @@ class PlayerWidget(QGroupBox, KeyboardListener):
 
     def update_state(self):
         self.state.img_viewer.on_current_frame_change()
+        try:
+            self.state.track_info.last_tagged_side= list(self.state.track_info.tagged_frames.keys())[-1]
+        except IndexError:
+            print("First tagged frame: "+ str(self.state.current_frame))
         self.state.track_info.tagged_frames[self.state.current_frame] = self.state.side
         self.state.track_info.total_frames = self.state.nb_frames

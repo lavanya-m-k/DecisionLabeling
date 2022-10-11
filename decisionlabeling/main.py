@@ -122,7 +122,7 @@ class CentralWidget(QWidget, StateListener):
         self.options = Options(self.state)
 
 
-        self.state.FRAME_RATE= 5
+        self.state.FRAME_RATE= 30
         self.state.frame_mode = FrameMode.CONTROLLED
         self.thread = PlayerThread(self.state)
         self.thread.start()

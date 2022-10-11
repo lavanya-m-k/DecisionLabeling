@@ -138,14 +138,17 @@ def convert_video_to_frames_opencv(video_file, output_folder):
 
     vidcap = cv2.VideoCapture(video_file)
     nb_frames = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print("Total Frames" , nb_frames)
 
     success, image = vidcap.read()
-    if not success:
-        return
+    # if not success:
+    #     return
 
     nb_frames = min(nb_frames, MAX_FRAMES)
+    # nb_frames = 700
+    # print(nb_frames)
     for i in tqdm(range(nb_frames)):
-        cv2.imwrite(os.path.join(output_folder, "{:05d}.jpg".format(i)), image)
+        cv2.imwrite(os.path.join(output_folder, "{:006d}.jpg".format(i)), image)
         success, image = vidcap.read()
 
         if not success:

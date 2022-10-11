@@ -30,26 +30,30 @@ class SideTagger(QGroupBox, StateListener):
 
     def update_state(self):
         self.state.img_viewer.on_current_frame_change()
+        try:
+            self.state.track_info.last_tagged_side = list(self.state.track_info.tagged_frames.keys())[-1]
+        except IndexError:
+            print("First tagged frame: " + str(self.state.current_frame))
         self.state.track_info.tagged_frames[self.state.current_frame] = self.state.side
         self.state.track_info.total_frames = self.state.nb_frames
 
     def on_left_clicked(self):
-        if self.state.side != "left":
-            self.state.set_side("left")
-            self.update_state()
-        else:
-            self.state.side = None
+        # if self.state.side != "left":
+        self.state.set_side("left")
+        self.update_state()
+        # else:
+        #     self.state.side = None
 
 
     def on_right_clicked(self):
         # self.state.set_theme(Theme.LIGHT)
         # self.state.img_viewer.img= cv2.putText(self.state.img_viewer.img, "Right", (600, 600),
         #             self.font, self.fontScale, (50,205,50), self.thickness, cv2.LINE_AA, False)
-        if self.state.side != "right":
-            self.state.set_side("right")
-            self.update_state()
-        else:
-            self.state.side = None
+        # if self.state.side != "right":
+        self.state.set_side("right")
+        self.update_state()
+        # else:
+        #     self.state.side = None
 
 class SideTagThread(QThread):
     def __init__(self, state):

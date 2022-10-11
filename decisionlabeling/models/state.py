@@ -32,7 +32,7 @@ class State:
         self.theme = Theme.DARK
         self.ssh_credentials = SSHCredentials()
         self.frame_rate = 60
-        self.FRAME_RATE = 20
+        self.FRAME_RATE = 100
         self.user_name = user_name
         self.current_detection = None
         self.frame_mode = FrameMode.MANUAL
@@ -50,6 +50,7 @@ class State:
         self.right_click_option = RightClickOption.DELETE_CURRENT
 
         self.speed_player = +1
+        self.is_view_play = True
 
         self.keypoints_show_bbox = False
         self.keypoints_instance_color = False
@@ -60,7 +61,7 @@ class State:
         self.visible_area = (0, 0, 0, 0)
         self.stored_area = (0, 0, 0, 0)
         self.image_size = (0, 0)
-        self.drawing = False
+        # self.drawing = False
 
         self.img_viewer = None
 
@@ -115,9 +116,9 @@ class State:
             pickle.dump(state_dict, f)
 
     def load_state(self):
-        if os.path.exists(STATE_PATH):
-            with open(STATE_PATH, 'rb') as f:
-                self.__dict__.update(pickle.load(f))
+        # if os.path.exists(STATE_PATH):
+        #     with open(STATE_PATH, 'rb') as f:
+        #         self.__dict__.update(pickle.load(f))
 
         # Reinitialize SSH connection info
         self.ssh_connected = False
@@ -169,7 +170,7 @@ class State:
             self.track_info.load_detections(self.get_file_name())
             self.current_detection = None
             # self.frame_mode = FrameMode.MANUAL
-            self.FRAME_RATE = 5
+            self.FRAME_RATE = 10
             self.frame_mode = FrameMode.CONTROLLED
             # thread.start()
             self.side=None
@@ -193,7 +194,6 @@ class State:
 
     def set_detections(self, detections, frame):
         self.track_info.write_detections(self.get_file_name(frame), detections)
-
         if frame == self.current_frame:
             self.notify_listeners("on_detection_change")
 

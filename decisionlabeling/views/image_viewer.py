@@ -2,10 +2,11 @@ import cv2
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import QPoint, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPainter
-from decisionlabeling.models import StateListener, FrameMode
+from decisionlabeling.models import StateListener, FrameMode, LabelTracker
 from decisionlabeling.utils import draw_detection
 from decisionlabeling.models import KeyboardListener
 from decisionlabeling.models.polygon import Bbox, Polygon
+from decisionlabeling.config import DATA_DIR
 from decisionlabeling.models.track_info import Detection
 from decisionlabeling.styles import Theme
 import numpy as np
@@ -226,12 +227,14 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
 
         self.thickness = 2
         self.font = cv2.QT_FONT_NORMAL
-        self.fontScale = 6
+        self.fontScale = 3
 
-        self.side_color_dict = {'left':(178, 34, 34), 'right':(50,205,50), None:(0, 0, 0)}
+        self.side_color_dict = {'left':(178, 34, 34), 'right':(50,205,50),
+                                None:(0, 0, 0), 0:(0, 0, 0)}
         self.side_axis_dict = {'left':(100, 600), 'right': (550, 600), None: (0, 0)}
 
         self.on_current_frame_change()
+        self.label_tracker = LabelTracker(self.state)
 
     def get_visible_area(self):
         h, w, _ = self.img.shape
@@ -249,11 +252,23 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         return offset_x, offset_y, width, height
 
     def on_current_frame_change(self):
-        self.state.drawing = True
+        # self.state.drawing = True
 
         start_time = time.time()
 
         is_different_img = self.current_frame != self.state.current_frame or self.current_video != self.state.current_video
+        # if self.state.is_view_play and self.current_frame==self.state.nb_frames-350:
+        #     blank_img = cv2.imread(DATA_DIR + 'blank.png')
+        #     # for m in range(60):
+        #     #     # blank_img = cv2.cvtColor(blank_img, cv2.COLOR_BGR2RGB)
+        #
+        #     cv2.putText(blank_img, "click play", (480,300),
+        #                 self.font, self.fontScale, (0,0,0),
+        #                 self.thickness, cv2.LINE_AA, False)
+        #     # self.draw_bboxes(blank_img)
+        #     #self.draw_image(blank_img)
+        #     self.current_frame+=1
+
         if is_different_img:
             self.current_frame = self.state.current_frame
             self.current_video = self.state.current_video
@@ -274,6 +289,13 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         self.draw_bboxes(img)
         self.draw_stored_area(img)
         self.draw_masked_area(img)
+        if not self.state.is_view_play:
+            self.draw_travel_path(img)
+        if self.state.is_view_play and self.current_frame == self.state.nb_frames - 1:
+            cv2.rectangle(img, (0,0), (1024,768), (0,0,0), thickness=-1)
+            cv2.putText(img, "click play", (380, 370),
+                                        self.font, self.fontScale, (255, 255, 255),
+                                        self.thickness, cv2.LINE_AA, False)
         self.draw_image(img)
 
         self.anchors_quadtree = AnchorQuadTree(Bbox(0, 0, w, h))
@@ -318,6 +340,8 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
                            bbox_class_color=self.state.bbox_class_color)
 
     def on_video_change(self):
+        self.state.is_view_play = True
+        # self.
         self.on_current_frame_change()
 
     def draw_image(self, img):
@@ -355,6 +379,36 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
                         self.font, self.fontScale, self.side_color_dict[self.state.side],
                         self.thickness, cv2.LINE_AA, False)
 
+    def draw_travel_path(self, img):
+        self.label_tracker = LabelTracker(self.state)
+        try:
+            tagged_side = list(self.state.track_info.tagged_frames.keys())[-1]
+        except IndexError:
+            tagged_side = self.state.nb_frames+1
+        colors =[]
+        for i in range(self.state.current_frame + 1):
+            if i < tagged_side and i < self.state.track_info.last_tagged_side:
+                colors.append(self.side_color_dict[0])
+            elif i < tagged_side and i <= self.state.track_info.last_tagged_side <= tagged_side:
+                colors.append(self.side_color_dict[0])
+            elif i < tagged_side and self.state.track_info.last_tagged_side<0:
+                colors.append(self.side_color_dict[0])
+            elif tagged_side > i >= self.state.track_info.last_tagged_side >= 0:
+                side = self.state.track_info.tagged_frames[self.state.track_info.last_tagged_side]
+                colors.append(self.side_color_dict[side])
+            else:
+                colors.append(self.side_color_dict[self.state.side])
+
+        # colors = [self.side_color_dict[0] if i<tagged_side else self.side_color_dict[self.state.side]
+        #           for i in range(self.state.current_frame+1)]
+
+
+        if self.state.current_frame <= self.label_tracker.get_total_labelled_frames():
+            for frame in range(self.state.current_frame+1):
+
+                x_coord, y_coord = self.label_tracker.get_coords(frame)
+                cv2.circle(img, (x_coord, y_coord), 4, colors[frame], -1)
+
     def update_zoom_offset(self):
         M = np.float32([[self.zoom * self.img_scale, 0, self.offset.x()],
                         [0, self.zoom * self.img_scale, self.offset.y()]])
@@ -374,7 +428,7 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
             qp.drawImage(QPoint(0, 0), img)
         qp.end()
 
-        self.state.drawing = False
+        # self.state.drawing = False
 
     def get_abs_pos(self, pos):
         return (pos - self.offset) / (self.zoom * self.img_scale)
@@ -396,68 +450,48 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
 
     def mousePressEvent(self, event):
         pos = self.get_abs_pos(event.pos())
+        #
+        # if event.buttons() == Qt.LeftButton:
+        #
+        #     anchor = self.anchors_quadtree.find_anchor([pos.x(), pos.y()])
+        #     detection = self.detections_quadtree.find_detection([pos.x(), pos.y()])
+        #     keypoint = self.keypoints_quadtree.find_anchor([pos.x(), pos.y()])
+        #
+        #     if anchor:
+        #         self.current_event = Event.RESIZING
+        #         self.current_anchor_key = anchor.anchor_key
+        #         self.current_detection = self.state.track_info.detections[anchor.detection_index].copy()
+        #         self.state.remove_detection(detection_index=anchor.detection_index)
+        #
+        #         if anchor.anchor_key[0] == "M":
+        #             QApplication.setOverrideCursor(Qt.SizeVerCursor)
+        #         elif anchor.anchor_key[1] == "M":
+        #             QApplication.setOverrideCursor(Qt.SizeHorCursor)
+        #         elif anchor.anchor_key == "LT" or anchor.anchor_key == "RB":
+        #             QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+        #         else:
+        #             QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+        #
+        #     elif detection:
+        #         self.current_event = Event.DRAGGING
+        #         QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+        #         self.current_detection = detection
+        #         self.state.remove_detection(detection=detection)
+        #         self.cursor_offset = np.array([pos.x(), pos.y()], dtype=float) - self.current_detection.bbox.pos
+        #
+        #     elif keypoint:
+        #         self.current_event = Event.KEYPOINT_DRAGGING
+        #         QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+        #         self.current_anchor_key = keypoint.anchor_key
+        #         self.current_detection = self.state.track_info.detections[keypoint.detection_index].copy()
+        #         self.state.remove_detection(detection_index=keypoint.detection_index)
+        #
+        #         i = self.current_anchor_key
+        #         keypoint_pos = self.current_detection.keypoints.coords[3*i:3*i+2]
+        #         self.cursor_offset = np.array([pos.x(), pos.y()], dtype=float) - keypoint_pos
 
-        if event.buttons() == Qt.LeftButton:
-
-            anchor = self.anchors_quadtree.find_anchor([pos.x(), pos.y()])
-            detection = self.detections_quadtree.find_detection([pos.x(), pos.y()])
-            keypoint = self.keypoints_quadtree.find_anchor([pos.x(), pos.y()])
-
-            if anchor:
-                self.current_event = Event.RESIZING
-                self.current_anchor_key = anchor.anchor_key
-                self.current_detection = self.state.track_info.detections[anchor.detection_index].copy()
-                self.state.remove_detection(detection_index=anchor.detection_index)
-
-                if anchor.anchor_key[0] == "M":
-                    QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                elif anchor.anchor_key[1] == "M":
-                    QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                elif anchor.anchor_key == "LT" or anchor.anchor_key == "RB":
-                    QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                else:
-                    QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-
-            elif detection:
-                self.current_event = Event.DRAGGING
-                QApplication.setOverrideCursor(Qt.ClosedHandCursor)
-                self.current_detection = detection
-                self.state.remove_detection(detection=detection)
-                self.cursor_offset = np.array([pos.x(), pos.y()], dtype=float) - self.current_detection.bbox.pos
-
-            elif keypoint:
-                self.current_event = Event.KEYPOINT_DRAGGING
-                QApplication.setOverrideCursor(Qt.ClosedHandCursor)
-                self.current_anchor_key = keypoint.anchor_key
-                self.current_detection = self.state.track_info.detections[keypoint.detection_index].copy()
-                self.state.remove_detection(detection_index=keypoint.detection_index)
-
-                i = self.current_anchor_key
-                keypoint_pos = self.current_detection.keypoints.coords[3*i:3*i+2]
-                self.cursor_offset = np.array([pos.x(), pos.y()], dtype=float) - keypoint_pos
-
-            else:
-                if self.holding_ctrl:
-                    self.current_event = Event.DRAWING
-                    track_id = self.state.track_info.get_min_available_track_id()
-                    self.current_detection = Detection(track_id=track_id, bbox=Bbox(pos.x(), pos.y(), 0, 0))
-
-                    self.on_current_frame_change()
-                else:
-                    self.current_event = Event.MOVING
-                    self.cursor_offset = event.pos() - self.offset
-
-        elif event.buttons() == Qt.RightButton:
-            anchor = self.anchors_quadtree.find_anchor([pos.x(), pos.y()])
-            detection = self.detections_quadtree.find_detection([pos.x(), pos.y()])
-
-            if anchor:
-                self.state.remove_detection_and_future(detection_index=anchor.detection_index)
-            elif detection:
-                self.state.remove_detection_and_future(detection=detection)
-
-        self.draw_current_detection()
-        self.update_zoom_offset()
+        # self.draw_current_detection()
+        # self.update_zoom_offset()
 
     def mouseMoveEvent(self, event):
 

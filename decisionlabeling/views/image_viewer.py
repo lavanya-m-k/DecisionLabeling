@@ -32,174 +32,13 @@ class Anchor:
     def __repr__(self):
         return "Anchor({})".format(self.anchor)
 
-
-class AnchorQuadTree:
-    MAX_PER_NODE = 5
-    MAX_DEPTH = 8
-
-    def __init__(self, bbox, depth=0):
-        self.bbox = bbox
-        self.anchors = []
-        self.children = None
-        self.depth = depth
-
-    def build_quadtree(self, detections):
-        for i, detection in enumerate(detections):
-            if not detection.keypoints and detection.bbox:
-                anchors = detection.bbox.get_anchors()
-                for anchor_key, anchor in anchors.items():
-                    self.add_anchor(Anchor(anchor_key, anchor, i))
-
-    def is_leaf(self):
-        return self.children is None
-
-    def add_anchor(self, anchor):
-        if self.is_leaf():
-            self.anchors.append(anchor)
-
-            if len(self.anchors) > self.MAX_PER_NODE and self.depth < self.MAX_DEPTH:
-                child_bboxes = utils.subdivide_bbox(self.bbox)
-                self.children = [AnchorQuadTree(bbox, self.depth + 1) for bbox in child_bboxes]
-
-                for i, bbox in enumerate(child_bboxes):
-                    for anchor in self.anchors:
-                        if bbox.intersects(anchor.anchor):
-                            self.children[i].add_anchor(anchor)
-                self.anchors = []
-
-        else:
-            for child in self.children:
-                if child.bbox.intersects(anchor.anchor):
-                    child.add_anchor(anchor)
-
-    def find_anchor(self, p):
-        if self.is_leaf():
-            for anchor in self.anchors:
-                xmin, ymin, xmax, ymax = anchor.anchor
-                if xmin <= p[0] <= xmax and ymin <= p[1] <= ymax:
-                    return anchor
-        else:
-            for child in self.children:
-                if child.bbox.is_inside(p):
-                    found = child.find_anchor(p)
-                    if found:
-                        return found
-
-        return None
-
-
-class KeypointQuadTree:
-    MAX_PER_NODE = 5
-    MAX_DEPTH = 8
-
-    def __init__(self, bbox, depth=0):
-        self.bbox = bbox
-        self.anchors = []
-        self.children = None
-        self.depth = depth
-
-    def build_quadtree(self, detections):
-        for i, detection in enumerate(detections):
-            anchors = detection.keypoints.get_anchors()
-            for anchor_key, anchor in anchors.items():
-                self.add_anchor(Anchor(anchor_key, anchor, i))
-
-    def is_leaf(self):
-        return self.children is None
-
-    def add_anchor(self, anchor):
-        if self.is_leaf():
-            self.anchors.append(anchor)
-
-            if len(self.anchors) > self.MAX_PER_NODE and self.depth < self.MAX_DEPTH:
-                child_bboxes = utils.subdivide_bbox(self.bbox)
-                self.children = [KeypointQuadTree(bbox, self.depth + 1) for bbox in child_bboxes]
-
-                for i, bbox in enumerate(child_bboxes):
-                    for anchor in self.anchors:
-                        if bbox.intersects(anchor.anchor):
-                            self.children[i].add_anchor(anchor)
-                self.anchors = []
-
-        else:
-            for child in self.children:
-                if child.bbox.intersects(anchor.anchor):
-                    child.add_anchor(anchor)
-
-    def find_anchor(self, p):
-        if self.is_leaf():
-            for anchor in self.anchors:
-                xmin, ymin, xmax, ymax = anchor.anchor
-                if xmin <= p[0] <= xmax and ymin <= p[1] <= ymax:
-                    return anchor
-        else:
-            for child in self.children:
-                if child.bbox.is_inside(p):
-                    found = child.find_anchor(p)
-                    if found:
-                        return found
-
-        return None
-
-
-class DetectionQuadTree:
-    MAX_PER_NODE = 5
-    MAX_DEPTH = 8
-
-    def __init__(self, bbox, depth=0):
-        self.bbox = bbox
-        self.detections = []
-        self.children = None
-        self.depth = depth
-
-    def build_quadtree(self, detections):
-        for i, detection in enumerate(detections):
-            if not detection.keypoints and detection.bbox:
-                self.add_detection(detection)
-
-    def is_leaf(self):
-        return self.children is None
-
-    def add_detection(self, detection):
-        if self.is_leaf():
-            self.detections.append(detection)
-
-            if len(self.detections) > self.MAX_PER_NODE and self.depth < self.MAX_DEPTH:
-                child_bboxes = utils.subdivide_bbox(self.bbox)
-                self.children = [DetectionQuadTree(bbox, self.depth + 1) for bbox in child_bboxes]
-
-                for i, bbox in enumerate(child_bboxes):
-                    for detection in self.detections:
-                        if bbox.intersects(detection.bbox.x1y1x2y2):
-                            self.children[i].add_detection(detection)
-                self.detection = []
-
-        else:
-            for child in self.children:
-                if child.bbox.intersects(detection.bbox.x1y1x2y2):
-                    child.add_detection(detection)
-
-    def find_detection(self, p):
-        if self.is_leaf():
-            for detection in self.detections:
-                if detection.bbox.is_inside(p):
-                    return detection
-        else:
-            for child in self.children:
-                if child.bbox.is_inside(p):
-                    found = child.find_detection(p)
-                    if found:
-                        return found
-
-        return None
-
-
 class ImageWidget(QWidget, StateListener, KeyboardListener):
     signal = pyqtSignal()
 
     def __init__(self, state):
         super().__init__()
 
+        self.img_scale = 0
         self.state = state
         self.state.add_listener(self)
 
@@ -209,9 +48,9 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         self.original_img = None
         self.img = None
 
-        self.anchors_quadtree = None
-        self.detections_quadtree = None
-        self.keypoints_quadtree = None
+        # self.anchors_quadtree = None
+        # self.detections_quadtree = None
+        # self.keypoints_quadtree = None
 
         self.current_event = None
         self.current_detection = None
@@ -228,6 +67,7 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         self.thickness = 2
         self.font = cv2.QT_FONT_NORMAL
         self.fontScale = 3
+        self.betweenTextFontScale = 1
 
         self.side_color_dict = {'left':(178, 34, 34), 'right':(50,205,50),
                                 None:(0, 0, 0), 0:(0, 0, 0)}
@@ -286,37 +126,29 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
 
         self.state.image_size = (h, w)
 
-        self.draw_bboxes(img)
+        # self.draw_bboxes(img)
         self.draw_stored_area(img)
         self.draw_masked_area(img)
-        if not self.state.is_view_play:
+        if not self.state.is_view_play and self.state.is_tag_play:
             self.draw_travel_path(img)
         if self.state.is_view_play and self.current_frame == self.state.nb_frames - 1:
-            cv2.rectangle(img, (0,0), (1024,768), (0,0,0), thickness=-1)
-            cv2.putText(img, "click play", (380, 370),
-                                        self.font, self.fontScale, (255, 255, 255),
-                                        self.thickness, cv2.LINE_AA, False)
+            cv2.rectangle(img, (-50,0), (1024,768), (0,0,0), thickness=-1)
+            cv2.putText(img, "press t to tag the video", (380, 370),
+                                        self.font, self.betweenTextFontScale, (255, 255, 255),
+                                        2, cv2.LINE_AA, False)
+        if self.state.is_view_play and self.current_frame == 0 and not self.state.is_tag_play and \
+                self.state.frame_mode == FrameMode.MANUAL:
+            cv2.rectangle(img, (-50,0), (1024,768), (0,0,0), thickness=-1)
+            cv2.putText(img, "press play to watch the video", (380, 370),
+                                        self.font, self.betweenTextFontScale, (255, 255, 255),
+                                        2, cv2.LINE_AA, False)
         self.draw_image(img)
 
-        self.anchors_quadtree = AnchorQuadTree(Bbox(0, 0, w, h))
-        self.detections_quadtree = DetectionQuadTree(Bbox(0, 0, w, h))
-        self.keypoints_quadtree = KeypointQuadTree(Bbox(0, 0, w, h))
-
-        if is_different_img:
-            # Only build the quadtrees when frame mode is not controlled
-            if self.state.frame_mode == FrameMode.MANUAL:
-                self.update_quadtrees()
-        else:
-            self.update_quadtrees()
 
     def on_frame_mode_change(self):
         if self.state.frame_mode == FrameMode.MANUAL:
-            self.update_quadtrees()
-
-    def update_quadtrees(self):
-        self.anchors_quadtree.build_quadtree(self.state.track_info.detections)
-        self.detections_quadtree.build_quadtree(self.state.track_info.detections)
-        self.keypoints_quadtree.build_quadtree(self.state.track_info.detections)
+            # self.update_quadtrees()
+            pass
 
     def on_detection_change(self):
         self.on_current_frame_change()
@@ -324,23 +156,10 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
     def on_theme_change(self):
         self.update_zoom_offset()
 
-    def draw_bboxes(self, img):
-        for detection in self.state.track_info.detections:
-            label = None if detection.class_id not in self.state.track_info.class_names else \
-                "{}, {}".format(self.state.track_info.class_names[detection.class_id], detection.track_id)
-            draw_detection(img, detection, kps_show_bbox=self.state.keypoints_show_bbox,
-                           kps_instance_color=self.state.keypoints_instance_color, bbox_class_color=self.state.bbox_class_color,
-                           label=label)
-
-    def draw_current_detection(self):
-        if self.current_detection:
-            self.img = self.img_temp.copy()
-            draw_detection(self.img, self.current_detection, draw_anchors=False,
-                           kps_show_bbox=self.state.keypoints_show_bbox, kps_instance_color=self.state.keypoints_instance_color,
-                           bbox_class_color=self.state.bbox_class_color)
-
     def on_video_change(self):
         self.state.is_view_play = True
+        self.state.is_tag_play = False
+        self.state.frame_mode = FrameMode.MANUAL
         # self.
         self.on_current_frame_change()
 
@@ -447,125 +266,3 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         self.offset += pos - new_p
 
         self.update_zoom_offset()
-
-    def mousePressEvent(self, event):
-        pos = self.get_abs_pos(event.pos())
-        #
-        # if event.buttons() == Qt.LeftButton:
-        #
-        #     anchor = self.anchors_quadtree.find_anchor([pos.x(), pos.y()])
-        #     detection = self.detections_quadtree.find_detection([pos.x(), pos.y()])
-        #     keypoint = self.keypoints_quadtree.find_anchor([pos.x(), pos.y()])
-        #
-        #     if anchor:
-        #         self.current_event = Event.RESIZING
-        #         self.current_anchor_key = anchor.anchor_key
-        #         self.current_detection = self.state.track_info.detections[anchor.detection_index].copy()
-        #         self.state.remove_detection(detection_index=anchor.detection_index)
-        #
-        #         if anchor.anchor_key[0] == "M":
-        #             QApplication.setOverrideCursor(Qt.SizeVerCursor)
-        #         elif anchor.anchor_key[1] == "M":
-        #             QApplication.setOverrideCursor(Qt.SizeHorCursor)
-        #         elif anchor.anchor_key == "LT" or anchor.anchor_key == "RB":
-        #             QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-        #         else:
-        #             QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-        #
-        #     elif detection:
-        #         self.current_event = Event.DRAGGING
-        #         QApplication.setOverrideCursor(Qt.ClosedHandCursor)
-        #         self.current_detection = detection
-        #         self.state.remove_detection(detection=detection)
-        #         self.cursor_offset = np.array([pos.x(), pos.y()], dtype=float) - self.current_detection.bbox.pos
-        #
-        #     elif keypoint:
-        #         self.current_event = Event.KEYPOINT_DRAGGING
-        #         QApplication.setOverrideCursor(Qt.ClosedHandCursor)
-        #         self.current_anchor_key = keypoint.anchor_key
-        #         self.current_detection = self.state.track_info.detections[keypoint.detection_index].copy()
-        #         self.state.remove_detection(detection_index=keypoint.detection_index)
-        #
-        #         i = self.current_anchor_key
-        #         keypoint_pos = self.current_detection.keypoints.coords[3*i:3*i+2]
-        #         self.cursor_offset = np.array([pos.x(), pos.y()], dtype=float) - keypoint_pos
-
-        # self.draw_current_detection()
-        # self.update_zoom_offset()
-
-    def mouseMoveEvent(self, event):
-
-        if self.state.frame_mode == FrameMode.SLIDER:
-            self.state.frame_mode = FrameMode.MANUAL
-            self.update_quadtrees()
-
-        if event.buttons() == Qt.NoButton:
-            pos = self.get_abs_pos(event.pos())
-
-            anchor = self.anchors_quadtree.find_anchor([pos.x(), pos.y()])
-            detection = self.detections_quadtree.find_detection([pos.x(), pos.y()])
-            keypoint = self.keypoints_quadtree.find_anchor([pos.x(), pos.y()])
-
-            if anchor:
-                if anchor.anchor_key[0] == "M":
-                    QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                elif anchor.anchor_key[1] == "M":
-                    QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                elif anchor.anchor_key == "LT" or anchor.anchor_key == "RB":
-                    QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                else:
-                    QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-
-            elif detection or keypoint:
-                QApplication.setOverrideCursor(Qt.OpenHandCursor)
-
-            else:
-                QApplication.restoreOverrideCursor()
-
-        elif event.buttons() == Qt.LeftButton:
-            pos = self.get_abs_pos(event.pos())
-            pos = np.array([pos.x(), pos.y()], dtype=float)
-
-            if self.current_event == Event.MOVING:
-                diff = event.pos() - self.cursor_offset
-                self.offset = diff
-                self.update_zoom_offset()
-
-            elif self.current_event == Event.DRAGGING:
-                diff = pos - self.cursor_offset
-                self.current_detection.bbox.pos = diff
-
-            elif self.current_event == Event.KEYPOINT_DRAGGING:
-                diff = pos - self.cursor_offset
-                i = self.current_anchor_key
-                self.current_detection.keypoints.coords[3*i:3*i+2] = diff
-
-            elif self.current_event == Event.RESIZING:
-                if self.current_anchor_key[0] == "L":
-                    self.current_detection.bbox.set_x1(pos[0])
-                elif self.current_anchor_key[0] == "R":
-                    self.current_detection.bbox.set_x2(pos[0])
-                if self.current_anchor_key[1] == "T":
-                    self.current_detection.bbox.set_y1(pos[1])
-                elif self.current_anchor_key[1] == "B":
-                    self.current_detection.bbox.set_y2(pos[1])
-
-            elif self.current_event == Event.DRAWING:
-                diff = pos - self.current_detection.bbox.pos
-                self.current_detection.bbox.size = diff
-
-            self.draw_current_detection()
-            self.update_zoom_offset()
-
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
-
-            if self.current_event != Event.MOVING:
-                self.current_detection.bbox.correct_negative_size()
-                self.state.set_current_detection(self.current_detection)
-
-            QApplication.restoreOverrideCursor()
-            self.current_event = None
-            self.current_detection = None
-            self.current_anchor_key = None
-            self.cursor_offset = None

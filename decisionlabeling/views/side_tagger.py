@@ -30,10 +30,10 @@ class SideTagger(QGroupBox, StateListener):
 
     def update_state(self):
         self.state.img_viewer.on_current_frame_change()
-        try:
-            self.state.track_info.last_tagged_side = list(self.state.track_info.tagged_frames.keys())[-1]
-        except IndexError:
-            print("First tagged frame: " + str(self.state.current_frame))
+        # try:
+        self.state.track_info.last_tagged_side = list(self.state.track_info.tagged_frames.keys())[-1]
+        # except IndexError:
+        #     print("First tagged frame: " + str(self.state.current_frame))
         self.state.track_info.tagged_frames[self.state.current_frame] = self.state.side
         self.state.track_info.total_frames = self.state.nb_frames
 

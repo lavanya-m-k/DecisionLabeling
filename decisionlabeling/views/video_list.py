@@ -22,6 +22,7 @@ class VideoListWidget(QListWidget, StateListener):
         self.state.set_current_video(item.text())
 
     def on_video_change(self):
+        self.state.is_view_play = True
         index = self.state.video_list.index(self.state.current_video)
         # self.item(index).setSelected(True)
 

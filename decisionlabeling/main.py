@@ -122,8 +122,8 @@ class CentralWidget(QWidget, StateListener):
         self.options = Options(self.state)
 
 
-        self.state.FRAME_RATE= 30
-        self.state.frame_mode = FrameMode.CONTROLLED
+        # self.state.FRAME_RATE= 70
+        # self.state.frame_mode = FrameMode.MANUAL
         self.thread = PlayerThread(self.state)
         self.thread.start()
         # self.user_info = UserInfo(self.state)
@@ -131,7 +131,7 @@ class CentralWidget(QWidget, StateListener):
         # self.detection_manager = DetectionManager(self.state, self.ssh_login)
         # self.tracking_manager = TrackingManager(self.state)
         # self.hungarian_button = HungarianManager(self.state)
-        self.info_detection = InfoDetection(self.state)
+        # self.info_detection = InfoDetection(self.state)
 
         self.io = IO(self, self.state)
 

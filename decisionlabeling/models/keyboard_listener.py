@@ -27,6 +27,12 @@ class KeyboardNotifier:
         if event.key() in [Qt.Key_V]:
             self.notify_listeners("on_key_v")
 
+        if event.key() in [Qt.Key_T]:
+            self.notify_listeners("on_key_t")
+
+        if event.key() in [Qt.Key_Tab]:
+            self.notify_listeners("on_key_tab")
+
         if event.key() == Qt.Key_Control:
             self.notify_listeners("on_key_ctrl", True)
 
@@ -78,6 +84,12 @@ class KeyboardListener:
         pass
 
     def on_key_v(self):
+        pass
+
+    def on_key_t(self):
+        pass
+
+    def on_key_tab(self):
         pass
 
     def on_key_number(self, number):

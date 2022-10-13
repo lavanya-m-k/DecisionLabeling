@@ -4,7 +4,6 @@ import glob
 import re
 from PyQt5.QtCore import QThread, QMutex
 from decisionlabeling.styles import Theme
-from .ssh_credentials import SSHCredentials
 from .track_info import TrackInfo
 from decisionlabeling import utils
 from decisionlabeling.config import DATA_DIR, STATE_PATH
@@ -30,9 +29,7 @@ class State:
         self.nb_frames = 0
         self.file_names = []
         self.theme = Theme.DARK
-        self.ssh_credentials = SSHCredentials()
-        self.frame_rate = 60
-        self.FRAME_RATE = 100
+        self.FRAME_RATE = 45
         self.user_name = user_name
         self.current_detection = None
         self.frame_mode = FrameMode.MANUAL
@@ -51,6 +48,7 @@ class State:
 
         self.speed_player = +1
         self.is_view_play = True
+        self.is_tag_play = False
 
         self.keypoints_show_bbox = False
         self.keypoints_instance_color = False
@@ -170,7 +168,7 @@ class State:
             self.track_info.load_detections(self.get_file_name())
             self.current_detection = None
             # self.frame_mode = FrameMode.MANUAL
-            self.FRAME_RATE = 10
+            self.FRAME_RATE = 70
             self.frame_mode = FrameMode.CONTROLLED
             # thread.start()
             self.side=None

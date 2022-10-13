@@ -190,12 +190,14 @@ class TrackInfo:
             "total_frames": self.total_frames
         }
 
-        data_l = []
         if os.path.exists(json_file):
             with open(json_file, "r") as f:
-                existing_data = json.load(f)
-                existing_data.update(data)
-                data = existing_data
+                try:
+                    existing_data = json.loads(f.read())
+                    existing_data.update(data)
+                    data = existing_data
+                except json.decoder.JSONDecodeError:
+                    print(f.read())
 
         with open(json_file, "w") as f:
             json.dump(data, f)

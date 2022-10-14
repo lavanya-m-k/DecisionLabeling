@@ -177,7 +177,6 @@ class CentralWidget(QWidget, StateListener):
         # use full ABSOLUTE path to the image, not relative
         pic.setPixmap(QPixmap(DOCS_PATH + "/keyboard-shortcuts.png"))
         control_layout.addWidget(pic)
-        # control_layout.addWidget(self.theme_picker)
         # control_layout.addWidget(self.options)
         # control_layout.addWidget(self.hungarian_button)
         # control_layout.addWidget(self.tracking_manager)

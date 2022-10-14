@@ -3,11 +3,8 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import QPoint, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPainter
 from decisionlabeling.models import StateListener, FrameMode, LabelTracker
-from decisionlabeling.utils import draw_detection
 from decisionlabeling.models import KeyboardListener
 from decisionlabeling.models.polygon import Bbox, Polygon
-from decisionlabeling.config import DATA_DIR
-from decisionlabeling.models.track_info import Detection
 from decisionlabeling.styles import Theme
 import numpy as np
 import math

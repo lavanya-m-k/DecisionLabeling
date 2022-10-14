@@ -1,7 +1,7 @@
 import os
 
-ROOT_DIR = '/'.join(os.getcwd().split('/')[:-1])#""
-# ROOT_DIR = ""
+# ROOT_DIR = '/'.join(os.getcwd().split('/')[:-1])#""
+ROOT_DIR = ""
 STATE_PATH = os.path.join(ROOT_DIR, "state.pkl")
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 OUTPUT_DIR = os.path.join(ROOT_DIR, "output")

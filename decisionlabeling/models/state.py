@@ -7,18 +7,7 @@ from decisionlabeling.styles import Theme
 from .track_info import TrackInfo
 from decisionlabeling import utils
 from decisionlabeling.config import DATA_DIR, STATE_PATH
-
-
-class FrameMode:
-    MANUAL = "manual"  # for manually choosing the current frame
-    CONTROLLED = "controlled"  # when the current frame is being controlled by some thread (Player, Tracker, ...)
-    SLIDER = "slider"
-
-
-class RightClickOption:
-    DELETE_CURRENT = 0
-    DELETE_PREVIOUS = 1
-    DELETE_FOLLOWING = 2
+from ..constants.constants import RightClickOption, FrameMode
 
 
 class State:

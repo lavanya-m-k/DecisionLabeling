@@ -1,28 +1,11 @@
 # decisionlabeling
 
-[![Build Status](https://travis-ci.com/alexandre01/decisionlabeling.svg?branch=master)](https://travis-ci.com/alexandre01/decisionlabeling)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPI](https://img.shields.io/pypi/pyversions/decisionlabeling.svg)](https://pypi.python.org/pypi/decisionlabeling)
-[![PyPI](https://img.shields.io/pypi/v/decisionlabeling.svg)](https://pypi.python.org/pypi/decisionlabeling) 
-
-![GitHub stars](https://img.shields.io/github/stars/alexandre01/decisionlabeling.svg?style=social)
-
-A multi-purpose Video Labeling GUI in Python with integrated SOTA detector and tracker. Developed using PyQt5.
-
-## Features
-- SSH connection to a remote GPU server (see below to configure the server)
-- YOLO and OpenPifPaf integrated object & pose detectors (single frame/video mode)
-- Hungarian algorithm for track_id assignment
-- SiamMask visual object tracking for missing or mislabeled boxes
-- Zoom on video, resizable bounding boxes and skeletons
-- Dark mode!
-
 ## Installation
 
 Start by cloning the repository on your computer:
 ```bash
-git clone https://github.com/alexandre01/UltimateLabeling.git
-cd UltimateLabeling
+git clone https://github.com/lavanya-m-k/DecisionLabeling.git
+cd DecisionLabeling
 ```
 
 We recommend installing the required packages in a virtual environment to avoid any library versions conflicts. The following will do this for you:
@@ -51,37 +34,54 @@ To extract video files, use the following script:
 bash extract.sh data/video_file.mp4
 ```
 
+[//]: # ()
+[//]: # (## Input / output)
 
-## Input / output
+[//]: # ()
+[//]: # (To start labeling your videos, put these &#40;folder of images or video file, the frames will be extracted automatically&#41; inside the `data` folder. )
 
-To start labeling your videos, put these (folder of images or video file, the frames will be extracted automatically) inside the `data` folder. 
+[//]: # ()
+[//]: # (- Import labels: To import existing .CSV labels, hit `Cmd+I` &#40;or `Ctrl+I`&#41;. UltimateLabeling expects to read one .CSV file per frame, in the format: "class_id", "xc", "yc", "w", "h".)
 
-- Import labels: To import existing .CSV labels, hit `Cmd+I` (or `Ctrl+I`). UltimateLabeling expects to read one .CSV file per frame, in the format: "class_id", "xc", "yc", "w", "h".
+[//]: # ()
+[//]: # (- Export labels: The annotations are internally saved in the `output` folder. To export them in a unique .CSV file, hit `Cmd+E` &#40;or `Ctrl+E`&#41; and choose the destination location.)
 
-- Export labels: The annotations are internally saved in the `output` folder. To export them in a unique .CSV file, hit `Cmd+E` (or `Ctrl+E`) and choose the destination location.
+[//]: # ()
+[//]: # (If you need other file formats for your projects, please write a GitHub issue or submit a Pull request.)
 
-If you need other file formats for your projects, please write a GitHub issue or submit a Pull request.
+[//]: # ()
+[//]: # ()
+[//]: # (## Shortcuts / mouse controls)
 
+[//]: # ()
+[//]: # (<img src="docs/keyboard_shortcuts.jpg" width="50%" />)
 
-## Shortcuts / mouse controls
+[//]: # ()
+[//]: # (Keyboard:)
 
-<img src="docs/keyboard_shortcuts.jpg" width="50%" />
+[//]: # (- A &#40;or Left key&#41;: next frame)
 
-Keyboard:
-- A (or Left key): next frame
-- D (or Right key): previous frame
-- W/S: class up/down
-- T: start/stop tracking (last used tracker)
-- Numberpad: assign given class_id
-- Spacebar: play the video
+[//]: # (- D &#40;or Right key&#41;: previous frame)
+
+[//]: # (- W/S: class up/down)
+
+[//]: # (- T: start/stop tracking &#40;last used tracker&#41;)
+
+[//]: # (- Numberpad: assign given class_id)
+
+[//]: # (- Spacebar: play the video)
 
 
 
 Mouse:
-- Click: select bounding box
-- Click & hold: move in the image
-- Cmd + click & hold: create new bounding box
-- Right click: delete bounding box in current frame (+ in all previous / all following frames if the corresponding option is enabled)
+
+[//]: # (- Click: select bounding box)
+
+[//]: # (- Click & hold: move in the image)
+
+[//]: # (- Cmd + click & hold: create new bounding box)
+
+[//]: # (- Right click: delete bounding box in current frame &#40;+ in all previous / all following frames if the corresponding option is enabled&#41;)
 - Scroll wheel (or swipe up/down): zoom in the image 
 
 

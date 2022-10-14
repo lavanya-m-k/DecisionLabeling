@@ -1,13 +1,12 @@
-from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QGroupBox, QStyle, qApp
+from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QGroupBox, QStyle, qApp, QRadioButton
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
+
+from decisionlabeling.constants.constants import FrameRate
 from decisionlabeling.models import KeyboardListener, FrameMode
 from decisionlabeling.models.track_info import Detection
 from decisionlabeling.models.polygon import Polygon, Bbox, Keypoints
 import time
 
-class FrameRate:
-    VIEW_FRAME_RATE = 70
-    TAG_FRAME_RATE = 45
 
 class PlayerThread(QThread):
 
@@ -57,6 +56,11 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         self.pause_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
         self.pause_button.clicked.connect(self.on_pause_clicked)
 
+        self.radiobutton = QRadioButton("Video Tag")
+        self.radiobutton.setChecked(False)
+        self.radiobutton.toggled.connect(self.on_radio_checked)
+
+
         # self.skip_forward_button = QPushButton()
         # self.skip_forward_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSkipForward))
         # self.skip_forward_button.clicked.connect(self.on_skip_forward_clicked)
@@ -69,6 +73,7 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         # layout.addWidget(self.slow_play_button)
         layout.addWidget(self.play_button)
         layout.addWidget(self.pause_button)
+        layout.addWidget(self.radiobutton)
         # layout.addWidget(self.speed_right_button)
 
         self.setLayout(layout)
@@ -187,16 +192,20 @@ class PlayerWidget(QGroupBox, KeyboardListener):
         #     self.state.side = None
 
     def on_key_t(self):
-        # if self.state.side != "right":
-        # self.state.is_view_play = False
+        self.on_video_tag()
+
+    def on_video_tag(self):
         self.state.is_tag_play = True
         self.on_play_clicked(FrameRate.TAG_FRAME_RATE)
         if self.state.is_view_play and self.state.is_tag_play:
             self.state.current_frame = 0
             self.state.is_view_play = False
         self.update_state()
-        # else:
-        #     self.state.side = None
+
+    def on_radio_checked(self):
+        radioButton = self.sender()
+        if radioButton.isChecked():
+            self.on_video_tag()
 
     def update_state(self):
         self.state.img_viewer.on_current_frame_change()

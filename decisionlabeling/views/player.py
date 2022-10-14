@@ -22,7 +22,7 @@ class PlayerThread(QThread):
         ):
             # if not self.state.drawing:
             self.state.increase_current_frame()
-            time.sleep(1 / self.state.FRAME_RATE)
+            # time.sleep(1 / self.state.FRAME_RATE)
 
 
 class PlayerWidget(QGroupBox, KeyboardListener):

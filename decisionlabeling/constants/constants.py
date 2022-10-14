@@ -1,6 +1,6 @@
 class FrameRate:
-    VIEW_FRAME_RATE = 70
-    TAG_FRAME_RATE = 45
+    VIEW_FRAME_RATE = 75
+    TAG_FRAME_RATE = 55
 
 class FrameMode:
     MANUAL = "manual"  # for manually choosing the current frame

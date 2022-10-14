@@ -7,7 +7,7 @@ from decisionlabeling.styles import Theme
 from .track_info import TrackInfo
 from decisionlabeling import utils
 from decisionlabeling.config import DATA_DIR, STATE_PATH
-from ..constants.constants import RightClickOption, FrameMode
+from ..constants.constants import RightClickOption, FrameMode, FrameRate
 
 
 class State:
@@ -18,7 +18,7 @@ class State:
         self.nb_frames = 0
         self.file_names = []
         self.theme = Theme.DARK
-        self.FRAME_RATE = 45
+        self.FRAME_RATE = FrameRate.VIEW_FRAME_RATE
         self.user_name = user_name
         self.current_detection = None
         self.frame_mode = FrameMode.MANUAL
@@ -157,7 +157,7 @@ class State:
             self.track_info.load_detections(self.get_file_name())
             self.current_detection = None
             # self.frame_mode = FrameMode.MANUAL
-            self.FRAME_RATE = 70
+            self.FRAME_RATE = FrameRate.VIEW_FRAME_RATE
             self.frame_mode = FrameMode.CONTROLLED
             # thread.start()
             self.side=None

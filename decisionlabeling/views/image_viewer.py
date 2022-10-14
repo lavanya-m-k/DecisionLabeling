@@ -65,8 +65,10 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         self.font = cv2.QT_FONT_NORMAL
         self.fontScale = 3
         self.betweenTextFontScale = 1
+        self.marked_point_size = 8
+        self.regular_point_size = 4
 
-        self.side_color_dict = {'left':(178, 34, 34), 'right':(50,205,50),
+        self.side_color_dict = {'left':(0, 102, 204), 'right':(0,180,154),
                                 None:(0, 0, 0), 0:(0, 0, 0)}
         self.side_axis_dict = {'left':(100, 600), 'right': (550, 600), None: (0, 0)}
 
@@ -188,8 +190,8 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
     def draw_masked_area(self, img):
         # self.left_bbox = (125.0, 50.0, 80.0, 100.0)
         # self.right_bbox = Bbox(436.0, 16.0, 70.0, 90.0)
-        cv2.rectangle(img, (120, 40), (220, 150), color=(178,34,34), thickness=-1)
-        cv2.rectangle(img, (436, 10), (516, 106), color=(50,205,50), thickness=-1)
+        cv2.rectangle(img, (120, 40), (220, 150), color=self.side_color_dict['left'], thickness=-1)
+        cv2.rectangle(img, (436, 10), (516, 106), color=self.side_color_dict['right'], thickness=-1)
         if self.state.side != None:
             cv2.putText(img, self.state.side, self.side_axis_dict[self.state.side],
                         self.font, self.fontScale, self.side_color_dict[self.state.side],
@@ -202,6 +204,7 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         except IndexError:
             tagged_side = self.state.nb_frames+1
         colors =[]
+
         for i in range(self.state.current_frame + 1):
             if i < tagged_side and i < self.state.track_info.last_tagged_side:
                 colors.append(self.side_color_dict[0])
@@ -218,12 +221,22 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         # colors = [self.side_color_dict[0] if i<tagged_side else self.side_color_dict[self.state.side]
         #           for i in range(self.state.current_frame+1)]
 
+        sizes = [self.marked_point_size
+                 if i in self.state.track_info.tagged_frames.keys() else self.regular_point_size
+                 for i in range(self.state.current_frame + 1)]
+        colors = [self.side_color_dict[self.state.track_info.tagged_frames[i]]
+                 if i in self.state.track_info.tagged_frames.keys()  else colors[i]
+                 for i in range(self.state.current_frame + 1)]
 
         if self.state.current_frame <= self.label_tracker.get_total_labelled_frames():
             for frame in range(self.state.current_frame+1):
 
                 x_coord, y_coord = self.label_tracker.get_coords(frame)
-                cv2.circle(img, (x_coord, y_coord), 4, colors[frame], -1)
+                cv2.circle(img, (x_coord, y_coord), sizes[frame], colors[frame], -1)
+
+            for frame in self.state.track_info.tagged_frames.keys():
+                x_coord, y_coord = self.label_tracker.get_coords(frame)
+                cv2.circle(img, (x_coord, y_coord), sizes[frame], colors[frame], -1)
 
     def update_zoom_offset(self):
         M = np.float32([[self.zoom * self.img_scale, 0, self.offset.x()],

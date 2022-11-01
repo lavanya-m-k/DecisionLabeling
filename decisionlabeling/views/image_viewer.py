@@ -68,7 +68,7 @@ class ImageWidget(QWidget, StateListener, KeyboardListener):
         self.marked_point_size = 8
         self.regular_point_size = 4
 
-        self.side_color_dict = {'left':(0, 102, 204), 'right':(0,180,154),
+        self.side_color_dict = {'left':(0, 102, 204), 'right':(0,220,104),
                                 None:(0, 0, 0), 0:(0, 0, 0)}
         self.side_axis_dict = {'left':(100, 600), 'right': (550, 600), None: (0, 0)}
 

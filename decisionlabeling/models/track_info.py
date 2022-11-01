@@ -92,7 +92,7 @@ class TrackInfo:
         # self.write_detections(self.file_name)
 
     def load_info(self):
-        json_file = os.path.join(OUTPUT_DIR, "/"+ self.video_name + "_info.json")
+        json_file = os.path.join(OUTPUT_DIR, self.video_name + "_info.json")
         # json_file = os.path.join(OUTPUT_DIR, "{}/info.json".format(self.video_name))
 
         if not os.path.exists(json_file):
